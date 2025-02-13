@@ -1,0 +1,14 @@
+
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566" # Use port 4566 for both DynamoDB and S3
+    environment:
+      - SERVICES=dynamodb
+      - DEBUG=1
+    volumes:
+      - type: bind
+        read_only: true
+        source: "src/scripts/dynamodb/init.sh"
+        target: "/etc/localstack/init/ready.d/init-dynamodb.sh"

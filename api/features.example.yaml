@@ -1,0 +1,7 @@
+features:
+  hand:
+    name: hand
+  foot:
+    name: foot
+  eye:
+    name: eye
