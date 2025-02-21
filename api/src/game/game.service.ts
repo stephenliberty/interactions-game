@@ -89,22 +89,12 @@ export class GameService {
     });
   }
 
-  async updateGameIfPermitted(
-    userId: string,
-    gameId: string,
-    update: UpdateGameDto,
-  ): Promise<GetGameDto> {
-    const game = await this.getGameById(gameId);
-    if (game.owner != userId) {
-      throw new UnauthorizedException();
-    }
+  async updateGame(id: string, update: UpdateGameDto): Promise<GetGameDto> {
+    const game = await this.getGameById(id);
     if (game.state != GAME_STATES.CREATED) {
       throw new ConflictException('Cannot update a running game');
     }
-    return this.updateGame(gameId, update);
-  }
 
-  async updateGame(id: string, update: UpdateGameDto): Promise<GetGameDto> {
     const expAttValues = new Map<string, any>();
     const updateExpression = [];
     if (update.virtualOnly !== undefined) {

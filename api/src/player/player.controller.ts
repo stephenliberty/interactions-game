@@ -6,16 +6,18 @@ import {
   Post,
   Req,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { IdentityService } from '../identity/identity.service';
 import { PlayerService } from './player.service';
 import { Request } from 'express';
 import { GameService } from '../game/game.service';
 import { UpdatePlayerGameDto } from './player.dto';
+import { GamePlayerGuard } from './game-player.guard';
 
 @Controller({
   version: '1',
-  path: 'game/:game_id/players',
+  path: 'game/:gameId/players',
 })
 export class PlayerController {
   constructor(
@@ -28,7 +30,7 @@ export class PlayerController {
   @Post('/join')
   async joinGame(
     @Req() request: Request,
-    @Param('game_id') id: string,
+    @Param('gameId') id: string,
     @Body() body: { password: string },
   ) {
     const game = await this.gameService.getGameById(id);
@@ -49,9 +51,10 @@ export class PlayerController {
     await this.playerService.joinUserToGame(id, request.session.user_id);
   }
 
+  @UseGuards(GamePlayerGuard)
   @Patch('/me')
   async updateUserPrefs(
-    @Param('game_id') gameId: string,
+    @Param('gameId') gameId: string,
     @Req() request: Request,
     @Body() update: UpdatePlayerGameDto,
   ) {

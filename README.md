@@ -5,7 +5,12 @@ app, letting me put together some details about NestJS and Next.js that I haven'
 scratch in other contexts. This has been iterated on since about 2020, being restarted multiple times to learn new 
 frameworks (or from a disk crash that had no backup - whoops). The big learning item here is that separating the API
 work from the UI work makes a huge difference - doing both at once leads to rapid burnout. So we're aiming to be able
-to play a complete game via REST calls first, then build an interaction layer on top of that. 
+to play a complete game via REST calls first, then build an interaction layer on top of that.
+
+## Important note
+
+Nothing in this repo is allowed to be generated via "AI". I may consider integrating with those systems later to build
+content, but the code itself must come directly from brain matter. 
 
 ## The rules
 
