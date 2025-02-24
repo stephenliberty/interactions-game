@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   Patch,
   Post,
@@ -46,9 +47,15 @@ export class PlayerController {
     if (pw != body.password) {
       throw new UnauthorizedException();
     }
-    this.identityService.patchSessionInformation(request); //TODO: Move this into its own controller
+    this.identityService.patchSessionInformation(request); //TODO: Move this into its own controller?
 
     await this.playerService.joinUserToGame(id, request.session.user_id);
+  }
+
+  @UseGuards(GamePlayerGuard)
+  @Get('/players')
+  async getGamePlayers(@Param('gameId') gameId: string) {
+    return this.playerService.getGamePlayers(gameId);
   }
 
   @UseGuards(GamePlayerGuard)

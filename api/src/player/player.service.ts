@@ -15,7 +15,7 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 
 import { PLAYER_STATES, PlayerDto, UpdatePlayerGameDto } from './player.dto';
-import { GAME_STATES, GetGameDto } from '../game/game.dto';
+import { GAME_STATES } from '../game/game.dto';
 import { GameService } from '../game/game.service';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -35,18 +35,7 @@ export class PlayerService {
   'props' and such, as well as make sure we know how they're feeling about the various other people playing.
    */
   async validateGameUsers(game_id: string) {
-    const gamePlayers = await this.ddbDocClient.send(
-      new QueryCommand({
-        TableName: 'game_user',
-        KeyConditionExpression: 'game_id = :game_id',
-        ExpressionAttributeValues: {
-          ':game_id': game_id,
-        },
-      }),
-    );
-    const playerDtos = gamePlayers.Items.map((gp) => {
-      return plainToClass(PlayerDto, gp);
-    });
+    const playerDtos = await this.getGamePlayers(game_id);
     if (playerDtos.length < 2) {
       throw new Error('Not enough players - must have at least two to play');
     }
@@ -63,6 +52,22 @@ export class PlayerService {
     ) {
       throw new Error('Not all players have other player intensities set');
     }
+  }
+
+  async getGamePlayers(game_id: string): Promise<Array<PlayerDto>> {
+    //TODO: Pagination
+    const gamePlayers = await this.ddbDocClient.send(
+      new QueryCommand({
+        TableName: 'game_user',
+        KeyConditionExpression: 'game_id = :game_id',
+        ExpressionAttributeValues: {
+          ':game_id': game_id,
+        },
+      }),
+    );
+    return gamePlayers.Items.map((gp) => {
+      return plainToClass(PlayerDto, gp);
+    });
   }
 
   async userIsPartOfGame(game_id: string, user_id: string): Promise<boolean> {
@@ -89,6 +94,11 @@ export class PlayerService {
     if (properties.player_intensity) {
       expAttValues.set('player_intensity', properties.player_intensity);
       updateExpression.push('#player_intensity = :player_intensity');
+    }
+
+    if (properties.state) {
+      expAttValues.set('state', properties.state);
+      updateExpression.push('#state = :state');
     }
 
     if (properties.intensity) {
@@ -152,8 +162,14 @@ export class PlayerService {
             game_id: game_id,
             user_id: user_id,
           },
+          ExpressionAttributeNames: {
+            '#points': 'points',
+          },
+          ExpressionAttributeValues: {
+            ':points': 0,
+          },
           ConditionExpression: 'attribute_not_exists(user_id)',
-          UpdateExpression: 'SET points = 0',
+          UpdateExpression: 'SET #points = :points',
         }),
       );
     } catch (e) {
