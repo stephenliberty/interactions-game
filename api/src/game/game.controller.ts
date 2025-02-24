@@ -47,7 +47,7 @@ export class GameController {
 
   @UseGuards(GameOwnerGuard)
   @Get(':gameId/password')
-  async getPassword(@Req() request: Request, @Param('id') id: string) {
+  async getPassword(@Param('gameId') id: string) {
     return await this.gameService.getGamePassword(id);
   }
 }

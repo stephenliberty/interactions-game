@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { GameService } from './game.service';
 
 @Injectable()
@@ -7,7 +12,11 @@ export class GameOwnerGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const game = await this.gameService.getGameById(request.params.gameId);
-    return game.owner == request.session.user_id;
+    try {
+      const game = await this.gameService.getGameById(request.params.gameId);
+      return game.owner == request.session.user_id;
+    } catch {
+      throw new UnauthorizedException();
+    }
   }
 }
