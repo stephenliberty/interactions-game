@@ -25,7 +25,6 @@ export class GetGameDto {
   virtualOnly: boolean;
   owner: string;
   state: GAME_STATES;
-  activeUser: string;
 }
 
 export class UpdateGameDto {

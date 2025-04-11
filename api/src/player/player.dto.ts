@@ -32,6 +32,8 @@ export class UpdatePlayerGameDto {
 }
 
 export class PlayerDto {
+  user_id: string;
+  game_id: string;
   props: string[];
   state: PLAYER_STATES;
   features: string[];

@@ -7,6 +7,7 @@ import {
   UpdatePlayerGameDto,
 } from '../player/player.dto';
 import { PlayerHelper } from '../../test/player.helper';
+import { GAME_STATES } from '../game/game.dto';
 
 describe('game engine', () => {
   let app;
@@ -82,6 +83,13 @@ describe('game engine', () => {
         .post(`/v1/game-engine/${game.getGameId()}/start`)
         .responseType('json')
         .expect(201);
+      await game
+        .getGameCreatorAgent()
+        .get(`/v1/game/${game.getGameId()}`)
+        .responseType('json')
+        .expect((res) => {
+          expect(JSON.parse(res.body).state).toEqual(GAME_STATES.ACTIVE);
+        });
     });
   });
 });

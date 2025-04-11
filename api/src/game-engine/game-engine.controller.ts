@@ -50,7 +50,7 @@ export class GameEngineController {
       throw new UnauthorizedException();
     }
 
-    return this.gameEngineService.getGameState(gameId);
+    return this.gameEngineService.getGameplayState(gameId);
   }
 
   @Post(':game_id/start')
@@ -70,10 +70,13 @@ export class GameEngineController {
       );
     }
 
-    const newState = await this.gameEngineService.createNewGameState(gameId);
-
+    const players = await this.playerService.getGamePlayers(gameId);
+    await this.gameEngineService.updateGameplayState(gameId, {
+      activePlayer:
+        players[Math.round(Math.random() * (players.length - 1))].user_id,
+    });
     await this.gameService.changeGameState(gameId, GAME_STATES.ACTIVE);
 
-    return newState;
+    return await this.gameEngineService.getGameplayState(gameId);
   }
 }

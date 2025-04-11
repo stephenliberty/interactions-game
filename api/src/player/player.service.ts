@@ -20,7 +20,7 @@ import {
   PlayerDto,
   UpdatePlayerGameDto,
 } from './player.dto';
-import { GAME_STATES, GetGameDto } from '../game/game.dto';
+import { GAME_STATES } from '../game/game.dto';
 import { GameService } from '../game/game.service';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
