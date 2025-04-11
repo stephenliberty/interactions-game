@@ -71,4 +71,10 @@ export class PlayerController {
       update,
     );
   }
+
+  @UseGuards(GamePlayerGuard)
+  @Get('/me')
+  async getUserPrefs(@Param('gameId') gameId: string, @Req() request: Request) {
+    return this.playerService.getGamePlayer(gameId, request.session.user_id);
+  }
 }

@@ -1,16 +1,10 @@
 import * as request from 'supertest';
-import { Test } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import { AppModule } from '../app.module';
+import { createApp } from '../../test/app.helper';
 
 describe('game', () => {
-  let app: INestApplication;
+  let app;
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleRef.createNestApplication();
+    app = await createApp();
     await app.init();
   });
   afterAll(async () => {

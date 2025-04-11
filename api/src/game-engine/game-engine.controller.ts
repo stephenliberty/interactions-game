@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Controller,
   Get,
   Param,
@@ -60,7 +61,14 @@ export class GameEngineController {
     }
     await this.gameService.changeGameState(gameId, GAME_STATES.VALIDATING);
     //TODO: Catch problems
-    await this.playerService.validateGameUsers(gameId);
+    try {
+      await this.playerService.validateGameUsers(gameId);
+    } catch (e) {
+      await this.gameService.changeGameState(gameId, GAME_STATES.CREATED);
+      throw new ConflictException(
+        'Not all players are ready and in a valid state',
+      );
+    }
 
     const newState = await this.gameEngineService.createNewGameState(gameId);
 

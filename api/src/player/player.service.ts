@@ -14,8 +14,13 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 
-import { PLAYER_STATES, PlayerDto, UpdatePlayerGameDto } from './player.dto';
-import { GAME_STATES } from '../game/game.dto';
+import {
+  GetPlayerGameDto,
+  PLAYER_STATES,
+  PlayerDto,
+  UpdatePlayerGameDto,
+} from './player.dto';
+import { GAME_STATES, GetGameDto } from '../game/game.dto';
 import { GameService } from '../game/game.service';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -47,11 +52,41 @@ export class PlayerService {
 
     if (
       playerDtos.some((player) => {
-        return player.player_intensity.size !== playerDtos.length;
+        return (
+          Object.keys(player.player_intensity).length !== playerDtos.length - 1
+        );
       })
     ) {
       throw new Error('Not all players have other player intensities set');
     }
+  }
+
+  async getGamePlayer(
+    game_id: string,
+    userId: string,
+  ): Promise<GetPlayerGameDto> {
+    const gamePlayer = await this.ddbDocClient.send(
+      new GetCommand({
+        TableName: 'game_user',
+        Key: {
+          game_id: game_id,
+          user_id: userId,
+        },
+      }),
+    );
+    if (!gamePlayer.Item) {
+      throw new NotFoundException();
+    }
+    return plainToClass(GetPlayerGameDto, {
+      user_id: gamePlayer.Item.user_id,
+      game_id: gamePlayer.Item.game_id,
+      display_name: gamePlayer.Item.display_name,
+      props: gamePlayer.Item.props,
+      state: gamePlayer.Item.state,
+      points: gamePlayer.Item.points,
+      features: gamePlayer.Item.features,
+      player_intensity: gamePlayer.Item.player_intensity,
+    });
   }
 
   async getGamePlayers(game_id: string): Promise<Array<PlayerDto>> {
