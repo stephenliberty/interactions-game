@@ -1,21 +1,11 @@
 props:
   pencil:
-    usedBy:
-      - hand
     name: pencil
   pen:
-    usedBy:
-      - hand
     name: pen
   glasses:
-    usedBy:
-      - eye
     name: eyeglasses
   shoe:
-    usedBy:
-      - foot
     name: shoe
   boot:
-    usedBy:
-      - foot
     name: boot

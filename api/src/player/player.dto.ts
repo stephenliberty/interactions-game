@@ -6,6 +6,11 @@ export enum PLAYER_STATES {
   BLOCKED = 'blocked',
 }
 
+export enum GAMEPLAY_REACTION {
+  PASS = 'pass',
+  COMPLETE = 'complete',
+}
+
 export class GetPlayerGameDto {
   user_id: string;
   game_id: string;
@@ -15,6 +20,8 @@ export class GetPlayerGameDto {
   points: number;
   features: string[];
   player_intensity: Record<string, number>;
+  player_vicinity: Record<string, number>;
+  intensity: number;
 }
 export class UpdatePlayerGameDto {
   @IsOptional()
@@ -28,15 +35,19 @@ export class UpdatePlayerGameDto {
   @IsOptional()
   player_intensity?: Map<string, number>;
   @IsOptional()
+  player_vicinity?: Record<string, number>;
+  @IsOptional()
   intensity?: number;
 }
 
 export class PlayerDto {
   user_id: string;
   game_id: string;
+  display_name: string;
   props: string[];
   state: PLAYER_STATES;
   features: string[];
   player_intensity: Map<string, number>;
+  player_vicinity: Record<string, number>;
   intensity: number;
 }

@@ -49,7 +49,6 @@ export class PlayerService {
         return validate(player);
       }),
     );
-
     if (
       playerDtos.some((player) => {
         return (
@@ -58,6 +57,15 @@ export class PlayerService {
       })
     ) {
       throw new Error('Not all players have other player intensities set');
+    }
+    if (
+      playerDtos.some((player) => {
+        return (
+          Object.keys(player.player_vicinity).length !== playerDtos.length - 1
+        );
+      })
+    ) {
+      throw new Error('Not all players have other player vicinities set');
     }
   }
 
@@ -129,6 +137,10 @@ export class PlayerService {
     if (properties.player_intensity) {
       expAttValues.set('player_intensity', properties.player_intensity);
       updateExpression.push('#player_intensity = :player_intensity');
+    }
+    if (properties.player_vicinity) {
+      expAttValues.set('player_vicinity', properties.player_vicinity);
+      updateExpression.push('#player_vicinity = :player_vicinity');
     }
 
     if (properties.state) {

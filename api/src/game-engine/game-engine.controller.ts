@@ -1,20 +1,20 @@
 import {
-  ConflictException,
+  Body,
   Controller,
   Get,
   Param,
   Post,
   Req,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { GameService } from '../game/game.service';
 import { GameEngineService } from './game-engine.service';
-import { IdentityService } from '../identity/identity.service';
 import { Request } from 'express';
-import { GAME_STATES } from '../game/game.dto';
 import { PlayerService } from '../player/player.service';
-import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { GamePlayerGuard } from '../player/game-player.guard';
+import { GAMEPLAY_REACTION } from '../player/player.dto';
+
 @Controller({
   version: '1',
   path: 'game-engine',
@@ -36,20 +36,9 @@ export class GameEngineController {
     return this.gameEngineService.getFeaturesData();
   }
 
+  @UseGuards(GamePlayerGuard)
   @Get(':game_id/state')
-  async getGameState(
-    @Param('game_id') gameId: string,
-    @Req() request: Request,
-  ) {
-    if (
-      !(await this.playerService.userIsPartOfGame(
-        gameId,
-        request.session.user_id,
-      ))
-    ) {
-      throw new UnauthorizedException();
-    }
-
+  async getGameState(@Param('game_id') gameId: string) {
     return this.gameEngineService.getGameplayState(gameId);
   }
 
@@ -59,24 +48,38 @@ export class GameEngineController {
     if (game.owner != request.session.user_id) {
       throw new UnauthorizedException();
     }
-    await this.gameService.changeGameState(gameId, GAME_STATES.VALIDATING);
-    //TODO: Catch problems
-    try {
-      await this.playerService.validateGameUsers(gameId);
-    } catch (e) {
-      await this.gameService.changeGameState(gameId, GAME_STATES.CREATED);
-      throw new ConflictException(
-        'Not all players are ready and in a valid state',
-      );
+    return await this.gameEngineService.startGame(gameId);
+  }
+
+  @UseGuards(GamePlayerGuard)
+  @Post(':game_id/react')
+  async reactToInteraction(
+    @Param('game_id') gameId: string,
+    @Req() request: Request,
+    @Body() reaction: { reactionType: GAMEPLAY_REACTION },
+  ) {
+    const gameState = await this.gameEngineService.getGameplayState(gameId);
+    if (
+      reaction.reactionType == GAMEPLAY_REACTION.COMPLETE &&
+      request.session.user_id != gameState.activeInteraction.fromPlayer
+    ) {
+      throw new UnauthorizedException();
     }
-
-    const players = await this.playerService.getGamePlayers(gameId);
-    await this.gameEngineService.updateGameplayState(gameId, {
-      activePlayer:
-        players[Math.round(Math.random() * (players.length - 1))].user_id,
-    });
-    await this.gameService.changeGameState(gameId, GAME_STATES.ACTIVE);
-
-    return await this.gameEngineService.getGameplayState(gameId);
+    if (
+      reaction.reactionType == GAMEPLAY_REACTION.PASS &&
+      request.session.user_id != gameState.activeInteraction.toPlayer
+    ) {
+      throw new UnauthorizedException();
+    }
+    if (
+      reaction.reactionType != GAMEPLAY_REACTION.PASS &&
+      reaction.reactionType != GAMEPLAY_REACTION.COMPLETE
+    ) {
+      throw new UnauthorizedException();
+    }
+    return await this.gameEngineService.reactToInteraction(
+      reaction.reactionType,
+      gameId,
+    );
   }
 }

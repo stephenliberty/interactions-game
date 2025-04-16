@@ -18,10 +18,6 @@ export interface PROPS {
   id: string;
   name: string;
 }
-export interface PROPS_USED_BY {
-  prop_id: string;
-  used_by: string;
-}
 export interface FEATURES {
   id: string;
   name: string;
@@ -30,7 +26,6 @@ export interface PROPS_SEED {
   props: Map<
     string,
     {
-      usedBy: string[];
       name: string;
     }
   >;
@@ -43,12 +38,29 @@ export interface FEATURES_SEED {
     }
   >;
 }
+interface INTERACTION_REQUIREMENTS_FOR_PLAYER {
+  props?: string[];
+  features?: [];
+}
+export interface INTERACTIONS_SEED {
+  interactions: {
+    interaction: string;
+    virtual: number;
+    intensity: number;
+    requires?: {
+      fromPlayer?: INTERACTION_REQUIREMENTS_FOR_PLAYER;
+      toPlayer?: INTERACTION_REQUIREMENTS_FOR_PLAYER;
+    };
+  }[];
+}
 
 async function seedData(db: Database) {
   await db.exec(`
     CREATE TABLE props (id PRIMARY KEY, name);
-    CREATE TABLE props_used_by (prop_id, used_by);
     CREATE TABLE features (id PRIMARY_KEY, name);
+    CREATE TABLE interactions (id INTEGER PRIMARY KEY AUTOINCREMENT, description, intensity, virtual);
+    CREATE TABLE interactions_prop (id PRIMARY_KEY, interaction_id INTEGER, player_side);
+    CREATE TABLE interactions_feature (id PRIMARY_KEY, interaction_id INTEGER, player_side);
   `);
   const props = await fsp.readFile(process.env.PROPS_SEED_FILE, {
     encoding: 'utf8',
@@ -61,13 +73,6 @@ async function seedData(db: Database) {
       entry[0],
       entry[1].name,
     );
-    for (const used_by_entry of entry[1].usedBy) {
-      await db.run(
-        'INSERT INTO props_used_by (prop_id, used_by) VALUES (?, ?)',
-        entry[0],
-        used_by_entry,
-      );
-    }
   }
 
   const features = await fsp.readFile(process.env.FEATURES_SEED_FILE, {
@@ -80,6 +85,71 @@ async function seedData(db: Database) {
       'INSERT INTO features (id, name) VALUES (?, ?)',
       entry[0],
       entry[1].name,
+    );
+  }
+
+  const interactions = await fsp.readFile(process.env.INTERACTIONS_SEED_FILE, {
+    encoding: 'utf8',
+  });
+  const interactionsSeed = yamlParse(interactions) as INTERACTIONS_SEED;
+  for (const entry of interactionsSeed.interactions) {
+    const res = await db.run(
+      'INSERT INTO interactions (description, intensity, virtual) VALUES (?, ?, ?)',
+      entry.interaction,
+      entry.intensity,
+      entry.virtual,
+    );
+    const id = res.lastID;
+    if (entry.requires) {
+      if (entry.requires.fromPlayer) {
+        await insertPlayerPropReq(
+          db,
+          id,
+          entry.requires.fromPlayer.props || [],
+          'from',
+        );
+        await insertPlayerFeatureReq(
+          db,
+          id,
+          entry.requires.fromPlayer.features || [],
+          'from',
+        );
+      }
+      if (entry.requires.toPlayer) {
+        await insertPlayerPropReq(
+          db,
+          id,
+          entry.requires.toPlayer.props || [],
+          'to',
+        );
+        await insertPlayerFeatureReq(
+          db,
+          id,
+          entry.requires.toPlayer.features || [],
+          'to',
+        );
+      }
+    }
+  }
+}
+
+async function insertPlayerPropReq(db, interactionId, props, player_side) {
+  for (const prop of props) {
+    await db.run(
+      'INSERT INTO interactions_prop (id, interaction_id, player_side) values (?, ?, ?)',
+      prop,
+      interactionId,
+      player_side,
+    );
+  }
+}
+async function insertPlayerFeatureReq(db, interactionId, props, player_side) {
+  for (const prop of props) {
+    await db.run(
+      'INSERT INTO interactions_feature (id, interaction_id, player_side) values (?, ?, ?)',
+      prop,
+      interactionId,
+      player_side,
     );
   }
 }

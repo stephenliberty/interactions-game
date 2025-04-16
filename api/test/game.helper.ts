@@ -12,6 +12,10 @@ export class GameHelper {
   public async createGame() {
     this.agent = request.agent(this.app.getHttpServer());
     this.gameId = (await this.agent.post(`/v1/game`)).body.id;
+    const res = await this.agent.patch(`/v1/game/${this.gameId}`).send({
+      maxIntensity: 5,
+    });
+    console.log(res);
     this.password = (
       await this.agent
         .get(`/v1/game/${this.gameId}/password`)

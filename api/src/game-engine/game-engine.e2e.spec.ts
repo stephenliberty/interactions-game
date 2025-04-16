@@ -1,11 +1,7 @@
 import { GameHelper } from '../../test/game.helper';
 import * as request from 'supertest';
 import { createApp } from '../../test/app.helper';
-import {
-  PLAYER_STATES,
-  PlayerDto,
-  UpdatePlayerGameDto,
-} from '../player/player.dto';
+import { PLAYER_STATES } from '../player/player.dto';
 import { PlayerHelper } from '../../test/player.helper';
 import { GAME_STATES } from '../game/game.dto';
 
@@ -55,6 +51,11 @@ describe('game engine', () => {
               [(await playerHelper.getPlayerInformation()).user_id, 3],
             ]),
           ),
+          player_vicinity: Object.fromEntries(
+            new Map<string, number>([
+              [(await playerHelper.getPlayerInformation()).user_id, 0],
+            ]),
+          ),
           intensity: 1,
           features: [],
           props: [],
@@ -69,6 +70,11 @@ describe('game engine', () => {
           player_intensity: Object.fromEntries(
             new Map<string, number>([
               [(await gameCreatorHelper.getPlayerInformation()).user_id, 3],
+            ]),
+          ),
+          player_vicinity: Object.fromEntries(
+            new Map<string, number>([
+              [(await gameCreatorHelper.getPlayerInformation()).user_id, 0],
             ]),
           ),
           intensity: 1,

@@ -1,0 +1,43 @@
+interactions:
+  - interaction: <%= it.toPlayer %>, please tell <%= it.fromPlayer %> about your favorite coffee drink
+    intensity: 0
+    virtual: 1
+  - interaction: |
+      <%= it.toPlayer %>, please tell <%= it.fromPlayer %> about your favorite coffee drink and attempt to convince
+      them them that it's the best drink ever.
+    intensity: 1
+    virtual: 1
+  - interaction: <%= it.toPlayer %>, show us all your glasses and tell us the story about how you got them.
+    intensity: 0
+    virtual: 1
+    requires:
+      toPlayer:
+        props:
+          - eyeglasses
+  - interaction: |
+      <%= it.toPlayer %>, please get up and give us a bow while introducing <%= it.fromPlayer %>
+    intensity: 1
+    virtual: 1
+  - interaction: |
+      <%= it.fromPlayer %>, give <%= it.toPlayer %> your shoes to see if they fit on their feet. <%= it.toPlayer %>, complain
+      the entire time about the color of their shoes.
+    intensity: 2
+    virtual: 0
+    requires:
+      fromPlayer:
+        props:
+          - shoes
+        features:
+          - foot
+      toPlayer:
+        features:
+          - foot
+  - interaction: |
+      <%= it.toPlayer %>, stare intensely into the camera and ramble for at least 30 seconds about how big
+      <%= it.fromPlayer %>'s hands are.
+    intensity: 2
+    virtual: 1
+    requires:
+      fromPlayer:
+        - features:
+            - hand
