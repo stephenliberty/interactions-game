@@ -12,6 +12,11 @@ to play a complete game via REST calls first, then build an interaction layer on
 Nothing in this repo is allowed to be generated via "AI". I may consider integrating with those systems later to build
 content, but the code itself must come directly from brain matter. 
 
+## What is in this repo?
+
+Just the API server. The UI is being done separate and for a private organization, so it'll be kept in its own private 
+repository, but the core API repo I can keep in the public eye, within some limits.
+
 ## The rules
 
 * Each player joins the game. They choose what level of intensity they're interested in, what items they have around,
